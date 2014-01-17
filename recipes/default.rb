@@ -22,11 +22,17 @@ application Chef::Recipe::APPLICATION_NAME do
   environment 'PATH_PREFIX' => ::File.join(ruby_path_prefix, 'bin')
 
   after_restart do
-    ruby_block 'setup chef_repo for use' do
-      not_if { ::File.exists?(::File.join(application_path, '.chef')) }
-      block do
-        ::Fil
-      end
+    template 'chef-knife-setup.sh' do
+      not_if { ::File.exists?(::File.join(application_path, 'chef-knife-setup.sh')) }
+      path './chef-knife-setup.sh'
+      owner 'root'
+      group 'root'
+      mode '0644'
+    end
+
+    ruby_block 'run the bash script' do
+      command 'bash chef-knife-setup.sh'
+      not_if { ::File.exists?(::File.join(application_path, '.chef')) } 
     end
 
     hipchat_msg 'deployed' do
